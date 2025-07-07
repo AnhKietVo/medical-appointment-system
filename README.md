@@ -1,5 +1,7 @@
-# 📦 My Project
+# 🩺 Medical Appointment System
 
-Dự án bao gồm hệ thống Web Admin, API Backend và ứng dụng Android cho người dùng.
+Hệ thống đặt lịch khám bệnh bao gồm:
+- 🖥️ Backend API (Spring Boot)
+- 📱 Ứng dụng Android (Kotlin/Java)
 
-## 📁 Cấu trúc thư mục
+## 📦 Cấu trúc thư mục
