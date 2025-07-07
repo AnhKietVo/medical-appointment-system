@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thêm bác sĩ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+  <style>
+    .my-card {
+      box-shadow: 0px 0px 10px 1px maroon;
+    }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="container p-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card my-card">
+        <div class="card-body">
+          <h3 class="text-center text-danger">Thêm bác sĩ</h3>
+          <div id="msg" class="text-center fs-5 mb-2"></div>
+
+          <form id="doctorForm">
+            <input name="fullName" class="form-control mb-3" placeholder="Họ và tên" required>
+            <input type="date" name="dateOfBirth" class="form-control mb-3" required>
+            <input name="qualification" class="form-control mb-3" placeholder="Bằng cấp" required>
+            <input name="specialist" class="form-control mb-3" placeholder="Chuyên khoa" required>
+            <input name="email" type="email" class="form-control mb-3" placeholder="Email" required>
+            <input name="phone" class="form-control mb-3" placeholder="Số điện thoại" required pattern="\d{10,}">
+            <input name="password" type="password" class="form-control mb-3" placeholder="Mật khẩu" required>
+            <button type="submit" class="btn btn-danger w-100">Xác nhận</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(data => {
+      document.getElementById("navbar").innerHTML = data;
+
+      // Gán hàm logout sau khi navbar đã render
+      window.logout = function () {
+        fetch('/api/admin/logout', {
+          method: 'POST',
+          credentials: 'include'
+        })
+        .then(res => {
+          if (res.ok) {
+            window.location.href = '/index.html';
+          } else {
+            alert("Logout failed");
+          }
+        })
+        .catch(err => {
+          console.error('Logout error:', err);
+        });
+      };
+    });
+</script>
+<script>
+
+    document.getElementById('doctorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const json = Object.fromEntries(formData.entries());
+      json.dateOfBirth = formatDateForAPI(json.dateOfBirth);
+
+      const res = await fetch('/api/admin/add-doctor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(json)
+      });
+
+      const result = await res.json();
+      document.getElementById('msg').textContent = result.message;
+      if (res.ok) form.reset();
+    });
+    function formatDateForAPI(dateStr) {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+  }
+function logout() {
+      fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(res => {
+        if (res.ok) {
+          window.location.href = '/index.html';
+        }
+      })
+      .catch(err => {
+        console.error('Logout failed', err);
+      });
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

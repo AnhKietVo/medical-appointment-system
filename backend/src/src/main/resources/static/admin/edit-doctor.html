@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Edit Doctor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <style>
+        .my-card {
+          box-shadow: 0px 0px 10px 1px maroon;
+        }
+    </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("navbar").innerHTML = data;
+      });
+</script>
+
+<div class="container-fluid p-3">
+    <div class="row">
+        <div class="col-md-4 offset-md-4">
+            <div class="card my-card">
+                <div class="card-body">
+                    <p class="fs-3 text-center text-danger">Sửa thông tin bác sĩ</p>
+                    <div id="msg" class="text-center fs-5"></div>
+                    <form id="editDoctorForm">
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên</label>
+                            <input name="fullName" type="text" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input name="dateOfBirth" type="date" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bằng cấp</label>
+                            <input name="qualification" type="text" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chuyên khoa</label>
+                            <input name="specialist" type="text" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input name="email" type="email" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input name="phone" type="text" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mật khẩu</label>
+                            <input name="password" type="text" class="form-control" required />
+                        </div>
+                        <input type="hidden" name="id" />
+                        <button type="submit" class="btn btn-danger w-100">Xác nhận</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+
+    async function loadDoctor() {
+    try {
+    const res = await fetch(`/api/admin/doctor/${id}`, { credentials: 'include' });
+    const json = await res.json();
+    console.log(json);
+    const doc = json.data;
+
+    const form = document.forms['editDoctorForm'];
+
+    form.fullName.value = doc.fullName;
+    form.dateOfBirth.value = formatDateForInput(doc.dateOfBirth);
+    form.qualification.value = doc.qualification;
+    form.specialist.value = doc.specialist;
+    form.email.value = doc.email;
+    form.phone.value = doc.phone;
+    form.password.value = doc.password;
+    form.id.value = doc.doctor_id;
+
+  } catch (err) {
+    document.getElementById("msg").textContent = "Lỗi tải dữ liệu.";
+    console.error(err);
+  }
+}
+
+function formatDateForInput(dateStr) {
+    const [day, month, year] = dateStr.split('/');
+    const paddedDay = day.padStart(2, '0');
+    const paddedMonth = month.padStart(2, '0');
+    return `${year}-${paddedMonth}-${paddedDay}`;
+}
+function formatDateForAPI(dateStr) {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+
+    document.getElementById("editDoctorForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const doctorData = Object.fromEntries(new FormData(form).entries());
+      doctorData.dateOfBirth = formatDateForAPI(doctorData.dateOfBirth);
+      try {
+        const res = await fetch(`/api/admin/update-doctor/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify(doctorData)
+        });
+
+        if (res.ok) {
+          document.getElementById("msg").textContent = "Cập nhật thông tin bác sĩ thành công!";
+
+        } else {
+          document.getElementById("msg").textContent = "Cập nhật thông tin bác sĩ thất bại!";
+        }
+      } catch (err) {
+        console.error("Update failed", err);
+        document.getElementById("msg").textContent = "Xẩy ra lỗi không thể cập nhật.";
+      }
+    });
+function logout() {
+      fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(res => {
+        if (res.ok) {
+          window.location.href = '/index.html';
+        }
+      })
+      .catch(err => {
+        console.error('Logout failed', err);
+      });
+    }
+window.addEventListener('DOMContentLoaded', loadDoctor);
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

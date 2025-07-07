@@ -1,0 +1,38 @@
+<!-- res/menu/menu_main.xml -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_login"
+        android:title="ĐĂNG NHẬP"
+        app:showAsAction="always|withText"/>
+    <item
+        android:id="@+id/action_welcome"
+        android:title="Welcome"
+        android:visible="false"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_change_password"
+        android:title="Đổi mật khẩu"
+        android:visible="false"
+        app:showAsAction="withText"/>
+    <item
+        android:id="@+id/action_view_doctor"
+        android:title="Xem bác sĩ"
+        android:visible="false"
+        app:showAsAction="withText"/>
+    <item
+        android:id="@+id/action_make_appointment"
+        android:title="Đặt lịch"
+        android:visible="false"
+        app:showAsAction="withText"/>
+    <item
+        android:id="@+id/action_my_appointment"
+        android:title="Lịch sử đặt hẹn"
+        android:visible="false"
+        app:showAsAction="withText"/>
+    <item
+        android:id="@+id/action_logout"
+        android:title="Đăng xuất"
+        android:visible="false"
+        app:showAsAction="withText"/>
+</menu>

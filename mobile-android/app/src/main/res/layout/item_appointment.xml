@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:elevation="4dp"
+    android:foreground="?attr/selectableItemBackground"
+    android:backgroundTint="#FFFFFF"
+    android:padding="12dp"
+    android:radius="12dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/txtFullName"
+            android:textStyle="bold"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:layout_marginStart="30dp"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/txtDetails"
+            android:textColor="#444"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="30dp"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/txtDoctor"
+            android:textColor="#444"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="30dp"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/txtStatus"
+            android:textColor="#444"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="30dp"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btnEdit"
+                android:text="Sửa"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ffffff"
+                android:backgroundTint="#2196F3" />
+
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:text="Xóa"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ffffff"
+                android:backgroundTint="#F44336" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
