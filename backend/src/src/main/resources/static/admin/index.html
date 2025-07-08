@@ -5,20 +5,11 @@
     <title>Trang tổng quan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="../css/layout.css">
 </head>
 <body>
 <div id="navbar"></div>
-
-<script>
-    fetch("navbar.html")
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("navbar").innerHTML = data;
-      });
-</script>
 
 <div id="container" class="container p-5">
     <p class="text-center text-danger fs-3">Trang tổng quan</p>
@@ -54,58 +45,14 @@
         </div>
     </div>
 </div>
-<div id="footer-placeholder"></div>
+<div id="footer"></div>
 
+<script src="../js/common.js"></script>
 <script>
-    fetch("../component/footer.html")
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("footer-placeholder").innerHTML = data;
-      });
+    loadNavbar("navbar", "navbar.html");
+    loadFooter("footer", "../component/footer.html");
 </script>
-
-<script>
-
-    async function loadDashboard() {
-      try {
-        const res = await fetch('/api/admin/dashboard', { credentials: 'include' });
-        if (res.status === 401) {
-          // Nếu chưa đăng nhập thì chuyển về trang login
-          window.location.href = '/admin_login.html';
-          return;
-        }
-
-        const data = await res.json();
-
-        // Gán dữ liệu vào UI
-        document.getElementById('doctorCount').textContent = data.data.doctors;
-        document.getElementById('userCount').textContent = data.data.users;
-        document.getElementById('appointmentCount').textContent = data.data.appointments;
-
-        // Hiện dashboard
-        document.getElementById('dashboard-stats').style.display = 'flex';
-      } catch (err) {
-        document.getElementById('msg').textContent = 'Lỗi tải dữ liệu.';
-        console.error(err);
-      }
-    }
-    window.addEventListener('DOMContentLoaded', loadDashboard);
-
-  function logout() {
-      fetch('/api/admin/logout', {
-        method: 'POST',
-        credentials: 'include'
-      })
-      .then(res => {
-        if (res.ok) {
-          window.location.href = '/index.html';
-        }
-      })
-      .catch(err => {
-        console.error('Logout failed', err);
-      });
-    }
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./js/dashboard-admin.js"></script>
 </body>
 </html>

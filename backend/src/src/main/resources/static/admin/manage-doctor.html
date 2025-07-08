@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Doctors</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/layout.css">
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div id="container" class="container-fluid p-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card my-card">
+                <div class="card-body">
+                    <p class="fs-3 text-center text-danger">Danh sách bác sĩ</p>
+
+                    <div id="msg" class="text-center fs-5"></div>
+
+                    <table class="table table-striped" id="doctorTable">
+                        <thead>
+                        <tr class="table-info">
+                            <th>Họ và tên</th>
+                            <th>Ngày sinh</th>
+                            <th>Bằng cấp</th>
+                            <th>Chuyên khoa</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th colspan="2" class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="footer"></div>
+
+<script src="../js/common.js"></script>
+<script>
+    loadNavbar("navbar", "navbar.html");
+    loadFooter("footer", "../component/footer.html");
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./js/manage-doctor.js"></script>
+</body>
+</html>

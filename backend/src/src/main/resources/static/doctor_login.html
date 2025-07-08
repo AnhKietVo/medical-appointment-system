@@ -16,15 +16,7 @@
 <body>
 
 <!-- NAVBAR PLACEHOLDER -->
-<div id="navbar-placeholder"></div>
-
-<script>
-    fetch("component/navbar.html")
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("navbar-placeholder").innerHTML = data;
-      });
-</script>
+<div id="navbar"></div>
 
 <!-- Doctor Login -->
 <div id = "container">
@@ -39,11 +31,7 @@
                 </div>
 
                 <div class="card-body">
-                    <!-- Success Message -->
-                    <p id="successMsg" class="text-center text-success fs-5" style="display:none;"></p>
-
-                    <!-- Error Message -->
-                    <p id="errorMsg" class="text-center text-danger fs-5" style="display:none;"></p>
+                    <div id="message" class="text-center mb-3"></div>
 
                     <!-- Login Form -->
                     <form id="doctorLogin">
@@ -62,41 +50,17 @@
         </div>
     </div>
 </div>
-<!-- End Doctor Login -->
 </div>
 <!-- FOOTER PLACEHOLDER -->
-<div id="footer-placeholder"></div>
+<div id="footer"></div>
 
+<script src="../js/common.js"></script>
 <script>
-    fetch("component/footer.html")
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("footer-placeholder").innerHTML = data;
-      });
-
-    async function onLoginSubmit(e) {
-    e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-
-    const res = await fetch('/api/doctor/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const data = await res.json();
-
-    if (data.message === "Đăng nhập thành công!") {
-      // khi login thành công, chuyển trang
-      window.location.href = "doctor/index.html";
-    }
-    else {
-      alert(data.message);
-    }
-  }
-
-  document.getElementById('doctorLogin').addEventListener('submit', onLoginSubmit);
+    loadNavbar("navbar", "component/navbar.html");
+    loadFooter("footer", "component/footer.html");
+    handleLogin('doctorLogin', '/api/doctor/login', 'doctor/index.html');
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
