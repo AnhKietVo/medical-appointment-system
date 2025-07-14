@@ -30,6 +30,42 @@ function formatDateForAPI(dateStr) {
   const [year, month, day] = dateStr.split("-");
   return `${day}/${month}/${year}`;
 }
+// Kiểm tra họ tên hợp lệ (chỉ chứa chữ cái và khoảng trắng)
+function isValidFullName(name) {
+  return /^[A-Za-zÀ-ỹ\s]+$/.test(name.trim());
+}
+
+// Kiểm tra tuổi hợp lệ: 1–120
+function isValidAge(age) {
+  const num = parseInt(age);
+  return !isNaN(num) && num > 0 && num <= 120;
+}
+
+// Kiểm tra số điện thoại hợp lệ: 9–11 chữ số
+function isValidPhone(phone) {
+  return /^[0-9]{9,11}$/.test(phone.trim());
+}
+// Kiểm tra email
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+// Kiểm tra ngày hẹn không nhỏ hơn hôm nay
+function isValidFutureDate(dateStr) {
+  const inputDate = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return inputDate >= today;
+}
+function formatFullName(name) {
+  return name
+    .trim()                          // Xoá khoảng trắng đầu/cuối
+    .toLowerCase()                   // Chuyển hết thành thường
+    .replace(/\s+/g, ' ')            // Nén khoảng trắng giữa các từ
+    .split(' ')                      // Tách từng từ
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Viết hoa chữ đầu
+    .join(' ');                      // Ghép lại thành chuỗi
+}
+
 async function handleLogin(formId, apiUrl, redirectUrl, isFormEncoded = false) {
   const form = document.getElementById(formId);
   if (!form) {
@@ -83,7 +119,7 @@ async function handleLogin(formId, apiUrl, redirectUrl, isFormEncoded = false) {
         msgEl.style.display = 'block';
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Lỗi đăng nhập:", err);
       const msgEl = document.getElementById('message') || document.getElementById('errorMsg');
       if (msgEl) {
         msgEl.textContent = "Lỗi kết nối. Vui lòng thử lại.";
@@ -111,4 +147,20 @@ function logout(apiPath = '/api/logout', redirectTo = '/index.html') {
       console.error('Logout failed', err);
     });
 }
+//  Hiển thị thông báo
+function showMessage(message, isSuccess = true) {
+  const msgEl = document.getElementById('message');
+  if (!msgEl) return;
+  msgEl.textContent = message;
+  msgEl.className = `text-center fs-5 ${isSuccess ? "text-success" : "text-danger"}`;
+  msgEl.style.display = 'block';
+}
 
+//  Xóa thông báo
+function clearMessage() {
+  const msgEl = document.getElementById('message');
+  if (msgEl) {
+    msgEl.textContent = "";
+    msgEl.style.display = "none";
+  }
+}

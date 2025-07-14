@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface AppointmentService {
     List<AppointmentDTO> getAllAppointments();
-    int countAppointmentsByDoctorId(int doctor_id);
+    int countAppointmentsByDoctorIdAndStatus(int doctor_id, String status);
     List<AppointmentDTO> getAllAppointmentsByDoctorId(int doctor_id);
     public boolean updateComment(int id, String comment);
     AppointmentDTO getAppointmentById(int id);

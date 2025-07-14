@@ -26,8 +26,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public int countAppointmentsByDoctorId(int doctor_id) {
-        return appointmentRepo.countAppointmentsByDoctorId(doctor_id);
+    public int countAppointmentsByDoctorIdAndStatus(int doctorId, String status) {
+        return appointmentRepo.countAppointmentsByDoctorIdAndStatus(doctorId, status);
     }
 
     @Override

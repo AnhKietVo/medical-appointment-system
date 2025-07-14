@@ -1,4 +1,4 @@
-
+// Load danh sách bác sĩ vào <select>
 async function loadDoctors() {
   try {
     const res = await fetch("/api/user/doctors");
@@ -6,8 +6,7 @@ async function loadDoctors() {
     const select = document.getElementById("doctorSelect");
 
     if (!json.data || !Array.isArray(json.data)) {
-      console.error("Invalid doctor data", json);
-      return;
+      return showMessage("Dữ liệu bác sĩ không hợp lệ", false);
     }
 
     json.data.forEach(doc => {
@@ -18,14 +17,16 @@ async function loadDoctors() {
     });
   } catch (error) {
     console.error("Failed to load doctors:", error);
+    showMessage("Không thể tải danh sách bác sĩ", false);
   }
 }
 
+// Load user hiện tại (và redirect nếu chưa đăng nhập)
 async function loadUser() {
   try {
     const res = await fetch("/api/user/current", { credentials: "include" });
     const json = await res.json();
-    if (json.data && json.data.user_id) {
+    if (json.data?.user_id) {
       document.getElementById("userId").value = json.data.user_id;
     } else {
       window.location.href = "/user_login.html";
@@ -36,11 +37,40 @@ async function loadUser() {
   }
 }
 
-document.getElementById("appointmentForm").addEventListener("submit", async e => {
+// Submit form tạo lịch hẹn
+async function handleAppointmentSubmit(e) {
   e.preventDefault();
-  const formData = new FormData(e.target);
+  clearMessage();
+
+  const form = e.target;
+  const formData = new FormData(form);
   const obj = Object.fromEntries(formData.entries());
-  obj.appointmentDate = formatDateForAPI(obj.appointmentDate);
+
+  // Gán biến để kiểm tra
+  obj.fullname = formatFullName(obj.fullname);
+  const fullName = obj.fullname;
+  const age = obj.age;
+  const phone = obj.phone;
+  const appointmentDate = obj.appointmentDate;
+
+  // Kiểm tra dữ liệu đầu vào
+  if (!isValidFullName(fullName)) {
+    return showMessage("Họ tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng).", false);
+  }
+
+  if (!isValidAge(age)) {
+    return showMessage("Tuổi phải từ 1 đến 120.", false);
+  }
+
+  if (!isValidPhone(phone)) {
+    return showMessage("Số điện thoại không hợp lệ (9–11 chữ số).", false);
+  }
+
+  if (!isValidFutureDate(appointmentDate)) {
+    return showMessage("Ngày hẹn không được nhỏ hơn hôm nay.", false);
+  }
+
+  obj.appointmentDate = formatDateForAPI(appointmentDate);
 
   try {
     const res = await fetch("/api/user/appointment", {
@@ -50,22 +80,24 @@ document.getElementById("appointmentForm").addEventListener("submit", async e =>
       body: JSON.stringify(obj)
     });
 
-    const resBody = await res.json();
+    const data = await res.json();
+    const message = data.message || "Không rõ kết quả.";
 
-    if (res.ok) {
-      alert("Đặt lịch thành công! Vui lòng chờ được xét duyệt.");
-      e.target.reset();
+    if (res.ok && message.includes("thành công")) {
+      showMessage(message, true);
+      form.reset();
     } else {
-      alert(resBody.message || "Đặt lịch thất bại!");
-      console.error("Error details:", resBody);
+      showMessage(message, false);
     }
-  } catch (error) {
-    console.error("Network error:", error);
-    alert("Xảy ra lỗi không thể đặt lịch!");
+  } catch (err) {
+    console.error("Lỗi submit:", err);
+    showMessage("Lỗi kết nối. Vui lòng thử lại.", false);
   }
-});
+}
 
+// Khởi tạo khi DOM sẵn sàng
 window.addEventListener("DOMContentLoaded", () => {
   loadDoctors();
   loadUser();
+  document.getElementById("appointmentForm").addEventListener("submit", handleAppointmentSubmit);
 });

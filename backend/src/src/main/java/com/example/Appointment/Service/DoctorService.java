@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface DoctorService {
     void saveDoctor(DoctorDTO doctorDTO);
+    public boolean existsByEmail(String email);
     List<DoctorDTO> getAllDoctors();
     public boolean deleteDoctor(int id);
     public DoctorDTO getDoctorById(int id);

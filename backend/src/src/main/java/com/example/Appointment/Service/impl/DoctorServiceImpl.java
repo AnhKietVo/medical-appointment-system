@@ -26,6 +26,9 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor doctor = doctorConvert.dtoToEntity(doctorDTO);
         doctorRepo.save(doctor);
     }
+    public boolean existsByEmail(String email) {
+        return doctorRepo.existsByEmail(email);
+    }
 
     @Override
     public List<DoctorDTO> getAllDoctors() {

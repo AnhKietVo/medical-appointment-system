@@ -31,8 +31,8 @@ async function loadAppointments() {
           <td>${app.status}</td>
           <td>
             ${app.status === "Đã duyệt"
-              ? `<a href="comment.html?id=${app.id}" class="btn btn-success btn-sm">Chuẩn đoán / Toa thuốc</a>`
-              : `<a href="#!" class="btn btn-success btn-sm disabled"><i class="fa fa-comment"></i> Chuẩn đoán / Toa thuốc</a>`
+              ? `<a href="comment.html?id=${app.id}" class="btn my-bg-color btn-sm">Chuẩn đoán / Toa thuốc</a>`
+              : `<a href="#!" class="btn myP-color btn-sm disabled"><i class="fa fa-comment"></i> Đã chuẩn đoán</a>`
             }
           </td>
         `;

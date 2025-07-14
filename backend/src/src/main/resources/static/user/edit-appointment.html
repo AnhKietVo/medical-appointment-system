@@ -16,8 +16,8 @@
         <div class="col-md-4 offset-md-4">
             <div class="card my-card">
                 <div class="card-body">
-                    <p class="fs-3 text-center text-danger">Sửa lịch hẹn</p>
-                    <div id="msg" class="text-center fs-5"></div>
+                    <p class="fs-3 text-center myP-color">Sửa lịch hẹn</p>
+                    <div id="message" class="text-center fs-5"></div>
                     <form id="editAppointmentForm">
                         <input type="hidden" name="id" />
                         <input type="hidden" name="userId" />
@@ -29,8 +29,8 @@
                             <label class="form-label">Giới tính</label>
                             <select name="gender" required class="form-control">
                                 <option value="" disabled selected>-- Chọn giới tính --</option>
-                                <option value="male">Nam</option>
-                                <option value="female">Nữ</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
                             </select>
                         </div>
                         <div class="col-md-12">
@@ -74,7 +74,7 @@
     loadFooter("footer", "../component/footer.html");
 </script>
 <script src="./js/home.js"></script>
-<script src="./js/change-password.js"></script>
+<script src="./js/edit-appointment.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

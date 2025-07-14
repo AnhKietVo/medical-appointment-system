@@ -43,16 +43,14 @@ public class DoctorController {
 
     @GetMapping("/dashboard")
     public ResponseEntity<Object> getDoctorDashboard(HttpSession session) {
-        DoctorDTO doctorDTO = (DoctorDTO) session.getAttribute("doctorObj");
-        if (doctorDTO == null) {
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
+        if (sessionDoctor == null) {
             return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
-
-        int totalDoctors = doctorService.countAllDoctors();
-        int totalAppointments = appointmentService.countAppointmentsByDoctorId(doctorDTO.getDoctor_id());
+        System.out.println("Doctor ID from session: " + sessionDoctor.getDoctor_id());
+        int totalAppointments = appointmentService.countAppointmentsByDoctorIdAndStatus(sessionDoctor.getDoctor_id(), "Đã duyệt");
 
         Map<String, Integer> stats = new HashMap<>();
-        stats.put("totalDoctors", totalDoctors);
         stats.put("totalAppointments", totalAppointments);
 
         return responseHandler.responseBuilder("Tải dữ liệu thành công", HttpStatus.OK, stats);
@@ -60,19 +58,19 @@ public class DoctorController {
 
     @GetMapping("/current")
     public ResponseEntity<Object> getCurrentUser(HttpSession session) {
-        Object doctorObj = session.getAttribute("doctorObj");
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
 
-        if (doctorObj != null) {
-            return responseHandler.responseBuilder("Bác sĩ đã trong phiên đăng nhập", HttpStatus.OK, doctorObj);
+        if (sessionDoctor != null) {
+            return responseHandler.responseBuilder("Bác sĩ đã trong phiên đăng nhập", HttpStatus.OK, sessionDoctor);
         } else {
             return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
     }
     @PostMapping("/logout")
     public ResponseEntity<Object> logout(HttpSession session) {
-        DoctorDTO doctor = (DoctorDTO) session.getAttribute("doctorObj");
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
 
-        if (doctor != null) {
+        if (sessionDoctor != null) {
             session.removeAttribute("doctorObj");
             return responseHandler.responseBuilder("Đăng xuất thành công", HttpStatus.OK, null);
         } else {
@@ -81,7 +79,15 @@ public class DoctorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getDoctorById(@PathVariable int id) {
+    public ResponseEntity<Object> getDoctorById(@PathVariable int id, HttpSession session) {
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
+        if (sessionDoctor == null) {
+            return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
+
+        if (sessionDoctor.getDoctor_id() != id) {
+            return responseHandler.responseBuilder("Không có quyền truy cập thông tin người khác", HttpStatus.FORBIDDEN, null);
+        }
         DoctorDTO doctorDTO = doctorService.getDoctorById(id);
         if (doctorDTO != null){
             return responseHandler.responseBuilder("Lấy dữ liệu thành công", HttpStatus.OK, doctorDTO);
@@ -90,7 +96,12 @@ public class DoctorController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Object> updateDoctor(@PathVariable int id, @RequestBody DoctorDTO doctorDTO) {
+    public ResponseEntity<Object> updateDoctor(@PathVariable int id, @RequestBody DoctorDTO doctorDTO, HttpSession session) {
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
+        if (sessionDoctor == null) {
+            return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
+
         doctorDTO.setDoctor_id(id); // Gán id từ URL vào DTO
         boolean updated = doctorService.updateDoctor(doctorDTO);
         if (updated) {
@@ -100,22 +111,34 @@ public class DoctorController {
     }
 
     @GetMapping("/appointments/{doctorId}")
-    public ResponseEntity<Object> showAllAppointmentsByDoctor(@PathVariable int doctorId) {
+    public ResponseEntity<Object> showAllAppointmentsByDoctor(@PathVariable int doctorId, HttpSession session) {
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
+        if (sessionDoctor == null) {
+            return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         List<AppointmentDTO> list = appointmentService.getAllAppointmentsByDoctorId(doctorId);
         return responseHandler.responseBuilder("Lấy dữ liệu thành công", HttpStatus.OK, list);
     }
 
     @PutMapping("/appointment/comment")
-    public ResponseEntity<Object> updateAppointmentComment(@RequestBody CommentDTO commentDTO) {
+    public ResponseEntity<Object> updateAppointmentComment(@RequestBody CommentDTO commentDTO, HttpSession session) {
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
+        if (sessionDoctor == null) {
+            return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         boolean updated = appointmentService.updateComment(commentDTO.getId(), commentDTO.getComment());
         if (updated) {
-            return responseHandler.responseBuilder("Cập nhật thông tin thành công", HttpStatus.OK, commentDTO);
+            return responseHandler.responseBuilder("Thêm chuẩn đoán thành công", HttpStatus.OK, commentDTO);
         }
-        return responseHandler.responseBuilder("Cập nhật thông tin thất bại", HttpStatus.NOT_FOUND, null);
+        return responseHandler.responseBuilder("Thêm chuẩn đoán thất bại", HttpStatus.NOT_FOUND, null);
     }
 
     @GetMapping("/appointment/{id}")
-    public ResponseEntity<Object> getAppointmentById(@PathVariable int id) {
+    public ResponseEntity<Object> getAppointmentById(@PathVariable int id, HttpSession session) {
+        DoctorDTO sessionDoctor = (DoctorDTO) session.getAttribute("doctorObj");
+        if (sessionDoctor == null) {
+            return responseHandler.responseBuilder("Bác sĩ chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         AppointmentDTO appointmentDTO = appointmentService.getAppointmentById(id);
         if (appointmentDTO != null){
             return responseHandler.responseBuilder("Lấy dữ liệu thành công", HttpStatus.OK, appointmentDTO);

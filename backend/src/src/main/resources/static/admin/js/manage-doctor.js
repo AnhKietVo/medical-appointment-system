@@ -1,52 +1,68 @@
-async function loadDoctors() {
-  try {
-    const res = await fetch('/api/admin/doctor-list', { credentials: 'include' });
-    const json = await res.json();
-    const doctors = json.data;
-
-    const tbody = document.querySelector("#doctorTable tbody");
-    tbody.innerHTML = '';
-
-    doctors.forEach(doc => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${doc.fullName}</td>
-        <td>${doc.dateOfBirth}</td>
-        <td>${doc.qualification}</td>
-        <td>${doc.specialist}</td>
-        <td>${doc.email}</td>
-        <td>${doc.phone}</td>
-        <td><a href="edit-doctor.html?id=${doc.doctor_id}" class="btn btn-sm btn-primary">Edit</a></td>
-        <td><button onclick="deleteDoctor(${doc.doctor_id})" class="btn btn-sm btn-danger">Delete</button></td>
-      `;
-      tbody.appendChild(row);
-    });
-  } catch (err) {
-    document.getElementById("msg").textContent = "Lỗi tải dữ liệu.";
-    console.error(err);
-  }
+function renderDoctorRow(doc) {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${doc.fullName}</td>
+    <td>${doc.dateOfBirth}</td>
+    <td>${doc.qualification}</td>
+    <td>${doc.specialist}</td>
+    <td>${doc.email}</td>
+    <td>${doc.phone}</td>
+    <td><a href="edit-doctor.html?id=${doc.doctor_id}" class="btn btn-sm btn-primary">Sửa</a></td>
+    <td><button class="btn btn-sm btn-danger" onclick="handleDeleteDoctor(${doc.doctor_id})">Xóa</button></td>
+  `;
+  return row;
 }
 
-async function deleteDoctor(id) {
+function updateDoctorTable(doctors) {
+  const tbody = document.querySelector("#doctorTable tbody");
+  tbody.innerHTML = "";
+  doctors.forEach(doc => {
+    tbody.appendChild(renderDoctorRow(doc));
+  });
+}
+
+
+async function fetchDoctorList() {
+  const res = await fetch('/api/admin/doctor-list', { credentials: 'include' });
+  const json = await res.json();
+  return json.data || [];
+}
+
+async function deleteDoctorById(id) {
+  const res = await fetch(`/api/admin/delete-doctor/${id}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+  return { ok: res.ok, text: await res.text() };
+}
+
+
+async function handleDeleteDoctor(id) {
   if (!confirm("Bạn có chắc chắn muốn xóa bác sĩ này?")) return;
 
   try {
-    const res = await fetch(`/api/admin/delete-doctor/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-
-    if (res.ok) {
-      alert("Xóa bác sĩ thành công.");
-      loadDoctors(); // reload danh sách
+    const { ok, text } = await deleteDoctorById(id);
+    if (ok) {
+      showMessage("Xóa bác sĩ thành công.", true);
+      await loadDoctors();
     } else {
-      const errorText = await res.text();
-      console.error("Delete failed:", errorText);
-      alert("Xóa bác sĩ thất bại.");
+      console.error("Delete failed:", text);
+      showMessage("Xóa bác sĩ thất bại.", false);
     }
   } catch (err) {
-    alert("Xảy ra lỗi không thể xóa bác sĩ.");
-    console.error(err);
+    console.error("Lỗi khi xóa:", err);
+    showMessage("Xảy ra lỗi không thể xóa bác sĩ.", false);
+  }
+}
+
+
+async function loadDoctors() {
+  try {
+    const doctors = await fetchDoctorList();
+    updateDoctorTable(doctors);
+  } catch (err) {
+    console.error("Lỗi tải dữ liệu:", err);
+    showMessage("Không thể tải danh sách bác sĩ.", false);
   }
 }
 

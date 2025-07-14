@@ -51,9 +51,9 @@ public class AdminController {
     }
     @PostMapping("/logout")
     public ResponseEntity<Object> logout(HttpSession session) {
-        UserDTO admin = (UserDTO) session.getAttribute("adminObj");
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
 
-        if (admin != null) {
+        if (adminSession != null) {
             session.removeAttribute("adminObj");
             return responseHandler.responseBuilder("Đăng xuất thành công", HttpStatus.OK, null);
         } else {
@@ -63,12 +63,9 @@ public class AdminController {
 
     @GetMapping("/dashboard")
     public ResponseEntity<Object> getDashboard(HttpSession session) {
-//        if (session.getAttribute("adminObj") == null) {
-//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not logged in");
-//        }
-        UserDTO admin = (UserDTO) session.getAttribute("adminObj");
-        if (admin == null) {
-            return responseHandler.responseBuilder("Admin chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
 
         Map<String, Integer> total = adminService.getDashboardStats();
@@ -79,15 +76,23 @@ public class AdminController {
 
     @PostMapping("/add-doctor")
     public ResponseEntity<Object> addDoctor(@RequestBody DoctorDTO doctorDTO, HttpSession session) {
-        if (session.getAttribute("adminObj") == null) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
             return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
+        if (doctorService.existsByEmail(doctorDTO.getEmail())) {
+            return responseHandler.responseBuilder("Email đã được sử dụng", HttpStatus.CONFLICT, null);
         }
         doctorService.saveDoctor(doctorDTO);
         return responseHandler.responseBuilder("Thêm bác sĩ mới thành công", HttpStatus.OK, null);
     }
 
     @GetMapping("/doctor-list")
-    public ResponseEntity<Object> getAllDoctors() {
+    public ResponseEntity<Object> getAllDoctors(HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         List<DoctorDTO> doctors = doctorService.getAllDoctors();
         if (doctors.isEmpty()) {
             return responseHandler.responseBuilder("Không có bác sĩ nào trong hệ thống", HttpStatus.OK, doctors);
@@ -97,7 +102,11 @@ public class AdminController {
     }
 
     @DeleteMapping("/delete-doctor/{id}")
-    public ResponseEntity<Object> deleteDoctor(@PathVariable int id) {
+    public ResponseEntity<Object> deleteDoctor(@PathVariable int id, HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         boolean deleted = doctorService.deleteDoctor(id);
         if (deleted) {
             return responseHandler.responseBuilder("Xóa thành công", HttpStatus.OK, null);
@@ -106,7 +115,11 @@ public class AdminController {
     }
 
     @GetMapping("/doctor/{id}")
-    public ResponseEntity<Object> getDoctorById(@PathVariable int id) {
+    public ResponseEntity<Object> getDoctorById(@PathVariable int id, HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         DoctorDTO doctorDTO = doctorService.getDoctorById(id);
         if (doctorDTO != null){
             return responseHandler.responseBuilder("Lấy dữ liệu thành công", HttpStatus.OK, doctorDTO);
@@ -115,7 +128,11 @@ public class AdminController {
     }
 
     @PutMapping("/update-doctor/{id}")
-    public ResponseEntity<Object> updateDoctor(@PathVariable int id, @RequestBody DoctorDTO doctorDTO) {
+    public ResponseEntity<Object> updateDoctor(@PathVariable int id, @RequestBody DoctorDTO doctorDTO,HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         doctorDTO.setDoctor_id(id); // Gán id từ URL vào DTO
         boolean updated = doctorService.updateDoctor(doctorDTO);
         if (updated) {
@@ -125,13 +142,21 @@ public class AdminController {
     }
 
     @GetMapping("/appointments")
-    public ResponseEntity<Object> getAllAppointments() {
+    public ResponseEntity<Object> getAllAppointments(HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         List<AppointmentDTO> list = appointmentService.getAllAppointments();
         return responseHandler.responseBuilder("Lấy dữ liệu thành công", HttpStatus.OK, list);
     }
 
     @PutMapping("/appointments/accept/{id}")
-    public ResponseEntity<Object> acceptAppointment(@PathVariable int id) {
+    public ResponseEntity<Object> acceptAppointment(@PathVariable int id,HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         boolean accepted = appointmentService.updateComment(id, "Đã duyệt");
         if (accepted) {
             return responseHandler.responseBuilder("Duyệt thành công", HttpStatus.OK, null);
@@ -140,7 +165,11 @@ public class AdminController {
     }
 
     @DeleteMapping("/appointments/reject/{id}")
-    public ResponseEntity<Object> rejectAppointment(@PathVariable int id) {
+    public ResponseEntity<Object> rejectAppointment(@PathVariable int id, HttpSession session) {
+        UserDTO adminSession = (UserDTO) session.getAttribute("adminObj");
+        if (adminSession == null) {
+            return responseHandler.responseBuilder("Quản trị viên chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
         boolean deleted = appointmentService.deleteAppointment(id);
         if (deleted) {
             return responseHandler.responseBuilder("Từ chối lịch hẹn thành công", HttpStatus.OK, null);

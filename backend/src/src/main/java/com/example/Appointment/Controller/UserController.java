@@ -59,19 +59,19 @@ public class UserController {
     }
     @GetMapping("/current")
     public ResponseEntity<Object> getCurrentUser(HttpSession session) {
-        Object userObj = session.getAttribute("userObj");
+        Object sessionUser = session.getAttribute("userObj");
 
-        if (userObj != null) {
-            return responseHandler.responseBuilder("Người dùng đã trong phiên đăng nhập", HttpStatus.OK, userObj);
+        if (sessionUser != null) {
+            return responseHandler.responseBuilder("Người dùng đã trong phiên đăng nhập", HttpStatus.OK, sessionUser);
         } else {
             return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
     }
     @PostMapping("/logout")
     public ResponseEntity<Object> logout(HttpSession session) {
-        UserDTO user = (UserDTO) session.getAttribute("userObj");
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
 
-        if (user != null) {
+        if (sessionUser != null) {
             session.removeAttribute("userObj");
             return responseHandler.responseBuilder("Đăng xuất thành công", HttpStatus.OK, null);
         } else {
@@ -80,7 +80,16 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<Object> getUserById(@PathVariable("id") int id) {
+    public ResponseEntity<Object> getUserById(@PathVariable("id") int id, HttpSession session) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null) {
+            return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
+
+        if (sessionUser.getUser_id() != id) {
+            return responseHandler.responseBuilder("Không có quyền truy cập thông tin người khác", HttpStatus.FORBIDDEN, null);
+        }
+
         UserDTO user = userService.getUserById(id);
         if (user != null) {
             return responseHandler.responseBuilder("Lấy dữ liệu thành công", HttpStatus.OK, user);
@@ -89,10 +98,21 @@ public class UserController {
         }
     }
     @PutMapping("/change-password")
-    public ResponseEntity<Object> changePassword(@RequestBody ChangePasswordDTO dto) {
-        boolean success = userService.changeUserPassword(dto.getUserId(),dto.getOldPassword(), dto.getNewPassword());
+    public ResponseEntity<Object> changePassword(@RequestBody ChangePasswordDTO dto, HttpSession session) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null) {
+            return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
+
+        // Chỉ cho đổi mật khẩu nếu user trong session trùng với userId gửi lên
+        if (dto.getUserId() != sessionUser.getUser_id()) {
+            return responseHandler.responseBuilder("Không có quyền thay đổi mật khẩu của người khác", HttpStatus.FORBIDDEN, null);
+        }
+
+        boolean success = userService.changeUserPassword(dto.getUserId(), dto.getOldPassword(), dto.getNewPassword());
+
         if (success) {
-            return responseHandler.responseBuilder("Mật khẩu đã được thay đổi", HttpStatus.OK, null);
+            return responseHandler.responseBuilder("Mật khẩu đã được thay đổi thành công", HttpStatus.OK, null);
         } else {
             return responseHandler.responseBuilder("Mật khẩu cũ không đúng", HttpStatus.UNAUTHORIZED, null);
         }
@@ -108,19 +128,27 @@ public class UserController {
     }
 
     @PostMapping("/appointment")
-    public ResponseEntity<Object> createAppointment(@RequestBody AppointmentDTO appointmentDTO) {
-        appointmentDTO.setStatus("Chờ duyệt");
-        appointmentService.saveAppointment(appointmentDTO);
-        return responseHandler.responseBuilder("Lịch hẹn đã được tạo", HttpStatus.CREATED, null);
-    }
-    @GetMapping("/appointments")
-    public ResponseEntity<Object> getAppointmentsByUser(HttpSession session) {
-        UserDTO userDTO = (UserDTO) session.getAttribute("userObj");
-        if (userDTO == null) {
+    public ResponseEntity<Object> createAppointment(@RequestBody AppointmentDTO appointmentDTO, HttpSession session) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null) {
             return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
 
-        List<AppointmentDTO> list = appointmentService.getAllAppointmentsByUserId(userDTO.getUser_id());
+        appointmentDTO.setUserId(sessionUser.getUser_id()); // Gán ID người dùng đang đăng nhập
+        appointmentDTO.setStatus("Chờ duyệt");       // Trạng thái mặc định
+
+        appointmentService.saveAppointment(appointmentDTO);
+        return responseHandler.responseBuilder("Lịch hẹn đã được tạo thành công. Vui lòng chờ duyệt", HttpStatus.CREATED, null);
+    }
+
+    @GetMapping("/appointments")
+    public ResponseEntity<Object> getAppointmentsByUser(HttpSession session) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null) {
+            return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
+        }
+
+        List<AppointmentDTO> list = appointmentService.getAllAppointmentsByUserId(sessionUser.getUser_id());
         if (list.isEmpty()) {
             return responseHandler.responseBuilder("Không có lịch hẹn nào", HttpStatus.OK, list);
         }
@@ -129,8 +157,8 @@ public class UserController {
 
     @DeleteMapping("/appointments/{id}")
     public ResponseEntity<Object> deleteAppointment(@PathVariable int id, HttpSession session) {
-        UserDTO user = (UserDTO) session.getAttribute("userObj");
-        if (user == null) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null) {
             return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
 
@@ -148,8 +176,8 @@ public class UserController {
         }
 
         // Kiểm tra quyền truy cập nếu cần
-        UserDTO user = (UserDTO) session.getAttribute("userObj");
-        if (user == null || appointmentDTO.getUserId() != user.getUser_id()) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null || appointmentDTO.getUserId() != sessionUser.getUser_id()) {
             return responseHandler.responseBuilder("Không có quyền truy cập lịch hẹn này", HttpStatus.FORBIDDEN, null);
         }
 
@@ -161,8 +189,8 @@ public class UserController {
     public ResponseEntity<Object> updateAppointment(@PathVariable int id,
                                                     @RequestBody AppointmentDTO appointmentDTO,
                                                     HttpSession session) {
-        UserDTO user = (UserDTO) session.getAttribute("userObj");
-        if (user == null) {
+        UserDTO sessionUser = (UserDTO) session.getAttribute("userObj");
+        if (sessionUser == null) {
             return responseHandler.responseBuilder("Người dùng chưa đăng nhập", HttpStatus.UNAUTHORIZED, null);
         }
 
@@ -174,7 +202,7 @@ public class UserController {
         if (existing == null) {
             return responseHandler.responseBuilder("Không tìm thấy lịch hẹn", HttpStatus.NOT_FOUND, null);
         }
-        if (existing.getUserId() != user.getUser_id()) {
+        if (existing.getUserId() != sessionUser.getUser_id()) {
             return responseHandler.responseBuilder("Không có quyền cập nhật lịch hẹn này", HttpStatus.FORBIDDEN, null);
         }
 

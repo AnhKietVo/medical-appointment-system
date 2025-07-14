@@ -11,7 +11,6 @@
       }
 
       const data = await res.json();
-      document.getElementById("totalDoctors").textContent = data.data.totalDoctors;
       document.getElementById("totalAppointments").textContent = data.data.totalAppointments;
     } catch (err) {
       console.error("Lỗi tải dữ liệu", err);

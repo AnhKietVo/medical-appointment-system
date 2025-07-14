@@ -11,8 +11,8 @@ import java.util.List;
 
 public interface AppointmentRepo extends JpaRepository<Appointment, Integer> {
     long count();
-    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId")
-    int countAppointmentsByDoctorId(@Param("doctorId") int doctorId);
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.status = :status")
+    int countAppointmentsByDoctorIdAndStatus(@Param("doctorId") int doctorId, @Param("status") String status);
 
     @Query("SELECT a FROM Appointment a WHERE a.doctor.id = :doctorId ORDER BY a.appointmentDate DESC")
     List<Appointment> findByDoctorId(@Param("doctorId") int doctorId);
