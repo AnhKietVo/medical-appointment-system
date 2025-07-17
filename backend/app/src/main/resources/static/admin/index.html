@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang tổng quan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/layout.css">
+</head>
+<body>
+<div id="navbar"></div>
+
+<div id="container" class="container p-5">
+    <p class="text-center myP-color fs-3">Trang tổng quan</p>
+
+    <!-- Messages -->
+    <div id="message" class="text-center fs-5"></div>
+
+    <!-- Dashboard Stats -->
+    <div class="row" id="dashboard-stats" style="display:none;">
+        <div class="col-md-4">
+            <div class="card my-card">
+                <div class="card-body text-center myP-color">
+                    <i class="fa-solid fa-user-doctor fa-3x"></i><br>
+                    <p class="fs-4">Bác sĩ <br><span id="doctorCount"></span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card my-card">
+                <div class="card-body text-center myP-color">
+                    <i class="fas fa-user-circle fa-3x"></i><br>
+                    <p class="fs-4">Người dùng <br><span id="userCount"></span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card my-card">
+                <div class="card-body text-center myP-color">
+                    <i class="fa-solid fa-calendar-check fa-3x"></i><br>
+                    <p class="fs-4">Tổng số lịch hẹn <br><span id="appointmentCount"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="footer"></div>
+
+<script src="../js/common.js"></script>
+<script>
+    loadNavbar("navbar", "navbar.html");
+    loadFooter("footer", "../component/footer.html");
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./js/dashboard-admin.js"></script>
+</body>
+</html>
