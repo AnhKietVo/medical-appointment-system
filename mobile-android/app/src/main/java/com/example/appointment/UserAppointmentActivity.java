@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +18,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.appointment.Api.UserApi;
+import com.example.appointment.Utils.AppUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,8 +54,8 @@ public class UserAppointmentActivity extends AppCompatActivity {
         doctorSpinner = findViewById(R.id.spinnerDoctor);
         submitButton = findViewById(R.id.buttonSubmit);
 
-        setupGenderSpinner();
-        loadDoctors();
+        AppUtils.setupGenderSpinner(this, genderSpinner);
+        AppUtils.loadDoctors(this, doctorSpinner, doctorMap);
 
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         userId = prefs.getInt("userId", -1);
@@ -61,51 +63,9 @@ public class UserAppointmentActivity extends AppCompatActivity {
             Toast.makeText(this, "Người dùng chưa đăng nhập", Toast.LENGTH_SHORT).show();
             finish();
         }
-        date.setOnClickListener(v -> showDatePicker());
+        date.setOnClickListener(v -> AppUtils.showDatePicker(this, date));
 
         submitButton.setOnClickListener(v -> submitAppointment());
-    }
-    private void setupGenderSpinner() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, new String[]{"Nam", "Nữ"});
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        genderSpinner.setAdapter(adapter);
-    }
-
-    private void showDatePicker() {
-        Calendar c = Calendar.getInstance();
-        new DatePickerDialog(this,
-                (view, year, month, day) -> {
-                    month++;
-                    String formatted = String.format(Locale.US, "%02d/%02d/%04d", day, month, year);
-                    date.setText(formatted);
-                },
-                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)
-        ).show();
-    }
-    private void loadDoctors() {
-        UserApi.getDoctors(this,
-                response -> {
-                    try {
-                        JSONArray array = response.getJSONArray("data");
-                        List<String> doctorNames = new ArrayList<>();
-                        for (int i = 0; i < array.length(); i++) {
-                            JSONObject obj = array.getJSONObject(i);
-                            int id = obj.getInt("doctor_id");
-                            String name = obj.getString("fullName") + " (" + obj.getString("specialist") + ")";
-                            doctorMap.put(name, id);
-                            doctorNames.add(name);
-                        }
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                                android.R.layout.simple_spinner_item, doctorNames);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        doctorSpinner.setAdapter(adapter);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> Toast.makeText(this, "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show()
-        );
     }
     private void submitAppointment() {
         String name = fullName.getText().toString().trim();
@@ -129,18 +89,36 @@ public class UserAppointmentActivity extends AppCompatActivity {
             Toast.makeText(this, "Người dùng chưa đăng nhập", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (TextUtils.isEmpty(dateStr) || !dateStr.contains("/")) {
-            Toast.makeText(this, "Chọn lịch hẹn", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || gender.isEmpty() || ageStr.isEmpty() || dateStr.isEmpty() || phoneStr.isEmpty() ||
+                diseasesStr.isEmpty() || addressStr.isEmpty() || selectedDoctorName.isEmpty()
+        ) {
+            AppUtils.showToast(this, "Vui lòng nhập đầy đủ thông tin");
             return;
         }
-
+        if (!AppUtils.isValidFullName(name)) {
+            AppUtils.showToast(this, "Tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng)");
+            return;
+        }
+        if (!AppUtils.isValidAge(ageStr)) {
+            AppUtils.showToast(this, "Tuổi phải 1-120 ");
+            return;
+        }
+        if (!AppUtils.isValidFutureDate(dateStr)) {
+            AppUtils.showToast(this, "Không chọn ngày nhỏ hơn hiện tại");
+            return;
+        }
+        if (!AppUtils.isValidPhone(phoneStr)) {
+            AppUtils.showToast(this, "Từ 9 - 11 số");
+            return;
+        }
+        String formattedName = AppUtils.formatFullName(name);
         JSONObject data = new JSONObject();
         try {
             data.put("userId", userId);
-            data.put("fullname", name);
+            data.put("fullname", formattedName);
             data.put("gender", gender);
             data.put("age", Integer.parseInt(ageStr));
-            data.put("appointmentDate", formatDateForAPI(dateStr));
+            data.put("appointmentDate", AppUtils.formatDateForAPI(dateStr));
             data.put("phone", phoneStr);
             data.put("diseases", diseasesStr);
             data.put("doctorId", doctorId);
@@ -159,19 +137,6 @@ public class UserAppointmentActivity extends AppCompatActivity {
             error.printStackTrace();
         });
     }
-    private String formatDateForAPI(String dateStr) {
-        if (dateStr == null || !dateStr.contains("/")) {
-            return dateStr;
-        }
-
-        String[] parts = dateStr.split("/"); // dd/MM/yyyy
-        if (parts.length != 3) {
-            return dateStr;
-        }
-
-        return parts[0] + "/" + parts[1] + "/" + parts[2]; // vẫn là dd/MM/yyyy (nhưng giờ an toàn hơn)
-    }
-
 
     private void clearFields() {
         fullName.setText("");

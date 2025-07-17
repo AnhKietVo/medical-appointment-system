@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appointment.Api.UserApi;
+import com.example.appointment.Utils.AppUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,10 +47,10 @@ public class EditAppointmentActivity extends AppCompatActivity {
         }
 
         initViews();
-        setupSpinners();
-        loadDoctors();
+        AppUtils.setupGenderSpinner(this, spinnerGender);
+        AppUtils.loadDoctors(this, spinnerDoctor, doctorMap);
         loadAppointment();
-        editTextAppointmentDate.setOnClickListener(v -> showDatePicker());
+        editTextAppointmentDate.setOnClickListener(v -> AppUtils.showDatePicker(this, editTextAppointmentDate));
         buttonUpdate.setOnClickListener(v -> updateAppointment());
     }
 
@@ -65,38 +66,6 @@ public class EditAppointmentActivity extends AppCompatActivity {
         buttonUpdate = findViewById(R.id.buttonUpdate);
     }
 
-    private void setupSpinners() {
-        String[] genders = {"Nam", "Nữ"};
-        spinnerGender.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders));
-
-        // TODO: Fetch doctor list from server for spinnerDoctor
-        String[] doctors = {"Dr. John", "Dr. Alice", "Dr. Smith"};
-        spinnerDoctor.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, doctors));
-    }
-    private void loadDoctors() {
-        UserApi.getDoctors(this,
-                response -> {
-                    try {
-                        JSONArray array = response.getJSONArray("data");
-                        List<String> doctorNames = new ArrayList<>();
-                        for (int i = 0; i < array.length(); i++) {
-                            JSONObject obj = array.getJSONObject(i);
-                            int id = obj.getInt("doctor_id");
-                            String name = obj.getString("fullName") + " (" + obj.getString("specialist") + ")";
-                            doctorMap.put(name, id);
-                            doctorNames.add(name);
-                        }
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                                android.R.layout.simple_spinner_item, doctorNames);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerDoctor.setAdapter(adapter);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> Toast.makeText(this, "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show()
-        );
-    }
     private void loadAppointment() {
         UserApi.getAppointmentById(this, appointmentId,
                 response -> {
@@ -112,8 +81,8 @@ public class EditAppointmentActivity extends AppCompatActivity {
                         String gender = data.getString("gender");
                         String doctorName = data.getString("doctorName");
 
-                        setSpinnerSelection(spinnerGender, gender);
-                        setSpinnerSelection(spinnerDoctor, doctorName);
+                        AppUtils.setSpinnerSelection(spinnerGender, gender);
+                        AppUtils.setSpinnerSelection(spinnerDoctor, doctorName);
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -124,17 +93,6 @@ public class EditAppointmentActivity extends AppCompatActivity {
                     error.printStackTrace();
                     Toast.makeText(this, "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show();
                 });
-    }
-    private void showDatePicker() {
-        Calendar c = Calendar.getInstance();
-        new DatePickerDialog(this,
-                (view, year, month, day) -> {
-                    month++;
-                    String formatted = String.format(Locale.US, "%02d/%02d/%04d", day, month, year);
-                    editTextAppointmentDate.setText(formatted);
-                },
-                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)
-        ).show();
     }
     private void updateAppointment() {
         String name = editTextFullName.getText().toString().trim();
@@ -160,18 +118,36 @@ public class EditAppointmentActivity extends AppCompatActivity {
             return;
         }
 
-        if (TextUtils.isEmpty(dateStr) || !dateStr.contains("/")) {
-            Toast.makeText(this, "Chọn lịch hẹn", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty() || gender.isEmpty() || ageStr.isEmpty() || dateStr.isEmpty() || phoneStr.isEmpty() ||
+                diseasesStr.isEmpty() || addressStr.isEmpty() || selectedDoctorName.isEmpty()
+        ) {
+            AppUtils.showToast(this, "Vui lòng nhập đầy đủ thông tin");
             return;
         }
-
+        if (!AppUtils.isValidFullName(name)) {
+            AppUtils.showToast(this, "Tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng)");
+            return;
+        }
+        if (!AppUtils.isValidAge(ageStr)) {
+            AppUtils.showToast(this, "Tuổi phải 1-120 ");
+            return;
+        }
+        if (!AppUtils.isValidFutureDate(dateStr)) {
+            AppUtils.showToast(this, "Không chọn ngày nhỏ hơn hiện tại");
+            return;
+        }
+        if (!AppUtils.isValidPhone(phoneStr)) {
+            AppUtils.showToast(this, "Từ 9 - 11 số");
+            return;
+        }
+        String formattedName = AppUtils.formatFullName(name);
         JSONObject data = new JSONObject();
         try {
             data.put("userId", userId);
-            data.put("fullname", name);
+            data.put("fullname", formattedName);
             data.put("gender", gender);
             data.put("age", Integer.parseInt(ageStr));
-            data.put("appointmentDate", formatDateForAPI(dateStr));
+            data.put("appointmentDate", AppUtils.formatDateForAPI(dateStr));
             data.put("phone", phoneStr);
             data.put("diseases", diseasesStr);
             data.put("doctorId", doctorId);
@@ -194,26 +170,4 @@ public class EditAppointmentActivity extends AppCompatActivity {
         });
     }
 
-
-    private String formatDateForAPI(String dateStr) {
-        if (dateStr == null || !dateStr.contains("/")) {
-            return dateStr;
-        }
-
-        String[] parts = dateStr.split("/"); // dd/MM/yyyy
-        if (parts.length != 3) {
-            return dateStr;
-        }
-
-        return parts[0] + "/" + parts[1] + "/" + parts[2]; // vẫn là dd/MM/yyyy (nhưng giờ an toàn hơn)
-    }
-    private void setSpinnerSelection(Spinner spinner, String value) {
-        ArrayAdapter adapter = (ArrayAdapter) spinner.getAdapter();
-        for (int i = 0; i < adapter.getCount(); i++) {
-            if (value.equalsIgnoreCase(adapter.getItem(i).toString())) {
-                spinner.setSelection(i);
-                break;
-            }
-        }
-    }
 }
