@@ -19,8 +19,8 @@ cd medical-appointment-system
 medical-appointment-system/
 ├── backend/
     ├── app/
-    │   ├── src/
-    │   ├── target/       # build output (ignored in Git)
+    │   ├── src
+    │   ├── target/       
     │   ├── Dockerfile
     │   └── pom.xml
     ├── docker-compose.yml
