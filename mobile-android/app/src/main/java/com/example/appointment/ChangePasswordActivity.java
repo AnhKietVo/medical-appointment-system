@@ -1,7 +1,5 @@
 package com.example.appointment;
 
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
@@ -11,6 +9,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appointment.Api.UserApi;
+import com.example.appointment.Utils.AppUtils;
+import com.example.appointment.Utils.AppUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,41 +29,39 @@ public class ChangePasswordActivity extends AppCompatActivity {
         newPassword = findViewById(R.id.editTextNewPassword);
         changePasswordBtn = findViewById(R.id.buttonChangePassword);
 
-        changePasswordBtn.setOnClickListener(v -> {
-            String oldPass = oldPassword.getText().toString().trim();
-            String newPass = newPassword.getText().toString().trim();
-            if (oldPass.isEmpty() || newPass.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        changePasswordBtn.setOnClickListener(v -> handleChangePassword());
+    }
 
-            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-            int userId = prefs.getInt("userId", -1);
+    private void handleChangePassword() {
+        String oldPass = oldPassword.getText().toString().trim();
+        String newPass = newPassword.getText().toString().trim();
 
-            if (userId == -1) {
-                Toast.makeText(this, "Người dùng chưa đăng nhập", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        // Validate
+        if (oldPass.isEmpty() || newPass.isEmpty() ) {
+            AppUtils.showToast(this, "Vui lòng nhập đầy đủ thông tin");
+            return;
+        }
 
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int userId = prefs.getInt("userId", -1);
+        if (userId == -1) {
+            AppUtils.showToast(this, "Người dùng chưa đăng nhập");
+            return;
+        }
+
+        try {
             JSONObject data = new JSONObject();
-            try {
-                data.put("userId", userId);
-                data.put("oldPassword", oldPass);
-                data.put("newPassword", newPass);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Error creating request data", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            data.put("userId", userId);
+            data.put("oldPassword", oldPass);
+            data.put("newPassword", newPass);
 
             UserApi.changePassword(this, data,
-                    response -> {
-                        Toast.makeText(this, "Đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
-                    },
-                    error -> {
-                        Toast.makeText(this, "Mật khẩu cũ không đúng!", Toast.LENGTH_SHORT).show();
-                    }
+                    response -> AppUtils.showToast(this, "Đổi mật khẩu thành công!"),
+                    error -> AppUtils.showToast(this, "Mật khẩu cũ không đúng!")
             );
-        });
+        } catch (JSONException e) {
+            e.printStackTrace();
+            AppUtils.showToast(this, "Lỗi xử lý dữ liệu");
+        }
     }
 }

@@ -11,7 +11,7 @@ import org.json.JSONObject;
 
 public class UserApi {
 
-    private static final String BASE_URL = "http://10.251.1.59:8080/api/user";
+    private static final String BASE_URL = "http://192.168.1.90:8080/api/user";
 
     public static void login(Context context, String email, String password,
                              Response.Listener<org.json.JSONObject> successListener,
@@ -75,7 +75,7 @@ public class UserApi {
 
         String url = BASE_URL + "/change-password";
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        SessionCookieRequest request = new SessionCookieRequest(
                 Request.Method.PUT,
                 url,
                 data,
@@ -104,7 +104,7 @@ public class UserApi {
                                          Response.ErrorListener errorListener) {
         String url = BASE_URL + "/appointment";
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        SessionCookieRequest request = new SessionCookieRequest(
                 Request.Method.POST,
                 url,
                 data,
@@ -168,7 +168,7 @@ public class UserApi {
 
         String url = BASE_URL + "/appointments/" + id;
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        SessionCookieRequest request = new SessionCookieRequest(
                 Request.Method.PUT,
                 url,
                 data,
